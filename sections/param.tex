@@ -1,0 +1,656 @@
+\section{Parameterized algorithms and kernelization}
+\label{sec:param}
+
+In this section we focus on the parameterized complexity of \textsc{$d$-Cut}. More precisely, in Section~\ref{sec:crossing-edges} we consider as the parameter the number of edges crossing the cut and in Section~\ref{sec:kernelization} the distance to cluster (in particular, we provide a quadratic kernel). The $\FPT$ algorithms parameterized by treewidth and the distance to co-cluster can be found in the full version of the paper.
+
+Before proceeding, we introduce the notion of \textit{monochromatic sets}.
+
+\begin{definition}
+	A set of vertices $X \subseteq V(G)$ is said to be \emph{monochromatic} if, for any $d$-cut $(A, B)$ of $G$, $X \subseteq A$ or $X \subseteq B$.
+	A subgraph $H$ of $G$ is monochromatic if $V(H)$ is monochromatic.
+\end{definition}
+
+%Section~\ref{sec:algo-tw} the treewidth of the input graph, in Section~\ref{sec:kernelization} the distance to cluster (in particular, we provide a quadratic kernel), and in Section~\ref{sec:cocluster} the distance to co-cluster.
+
+
+
+\subsection{Crossing edges}
+\label{sec:crossing-edges}
+
+
+In this section we consider as the parameter the maximum number of edges crossing the cut. In a nutshell, our approach is to use as a black box one of the algorithms presented by Marx et al.~\cite{marx_treewidth_reduction} for a class of separation problems. Their fundamental problem is \pname{$\mathcal{G}$-MinCut}, for a fixed class of graphs $\mathcal{G}$, which we state formally, along with their main result, below.
+
+
+\paraprobldecision{$\mathcal{G}$-MinCut}{A graph $G$, vertices $s,t $, and an integer $k$.}{Is there an induced subgraph $H$ of $G$ with at most $k$ vertices such that $H \in \mathcal{G}$ and $H$ is an $s-t$ separator?}{The integer $k$.}
+
+\begin{theorem}[Theorem 3.1 in~\cite{marx_treewidth_reduction}]
+    \label{thm:marx}
+    If $\mathcal{G}$ is a decidable and hereditary graph class, \pname{$\mathcal{G}$-MinCut} is $\FPT$.
+\end{theorem}
+
+To be able to apply Theorem~\ref{thm:marx}, we first need to specify a graph class to which, on the line graph, our separators correspond. We must also be careful to guarantee that the removal of a separator in the line graph leaves non-empty components in the input graph. To accomplish the latter, for each $v \in V(G)$, we add a private clique of size $2d$ adjacent only to it, choose one arbitrary vertex $v'$ in each of them. The algorithm asks, for each pair $v',u'$, whether or not a ``special'' separator of the appropriate size between $v'$ and $u'$ exists.
+We assume henceforth that these private cliques have been added to the input graph $G$.
+%\ig{what does it mean ``choose one vertex $v'$ in each of them''?}
+For each integer $d \geq 1$, we define the graph class $\mathcal{G}_d$ as follows.
+
+\begin{definition}
+    A graph $H$ belongs to $\mathcal{G}_d$ if and only if its maximum clique size is at most $d$.
+\end{definition}
+
+Note that $\mathcal{G}_d$ is decidable and hereditary for every integer $d \geq 1$.
+
+
+\begin{lemma}
+    \label{lem:cut_mincut}
+    $G$ has a $d$-cut separating $v'$ and $u'$ if and only if the line graph of $G$ has a vertex separator belonging to $\mathcal{G}_d$ that separates $e_v$ and $e_u$, where $e_v$ corresponds to the edge $vv' \in E(G)$ and $e_u$ to the edge $uu' \in E(G)$.
+\end{lemma}
+
+\begin{proof}
+    Let $H = L(G)$, $(A, B)$ be a $d$-cut of $G$, and $F \subseteq V(H)$ be the set of vertices such that $e_{uv} \in F$ if and only if $u \in A$ and $v \in B$, or vice-versa.
+    The fact that $F$ is a separator of $H$ follows directly from the hypothesis that $(A, B)$ is a cut of $G$.
+    Now, to show that $H[F] \in \mathcal{G}_d$, suppose for contradiction that $H[F]$ contains a  clique $Q$ with more than $d$ vertices.
+    That is, there are at least $d+1$ edges of $G$ that are pairwise intersecting and with one endpoint in $A$ and the other in $B$.
+    Note, however, that for at least one of the parts, say $A$, there is also {\sl at most} one vertex with an edge in $Q \subseteq E(G)$, as otherwise there would be two non-adjacent vertices in the clique $Q \subseteq V(H)$.
+    As such, $A$ has only one vertex and we conclude that every edge in $Q$ has an endpoint in $A$, but this, on the other hand, implies that $A$ has $d+1$ neighbors in $B$, contradicting the hypothesis that $(A, B)$ is a $d$-cut of $G$.
+
+
+    For the converse, take a vertex separator $S \subseteq V(H)$ such that $H[S] \in \mathcal{G}_d$ and let $E_S$ be the edges of $G$ corresponding to $S$.
+    %Since $s$ and $t$ are edges of a private clique \ig{what are $s$ and $t$? We have never defined them}, for simplicity we use $v_s$ and $v_t$ to denote the respective vertices in $G$.
+    Let $G'$ be the graph where each vertex corresponds to a connected component of $G - E_S$ and two vertices are adjacent if and only if there is an edge in $E_S$ between vertices of the respective components.
+    Let $Q_r$ be an arbitrarily chosen connected component of $G - E_S$.
+    Now, for each component at an odd distance from $Q_r$ in $G'$, add that component to $B$; all other components are placed in $A$.
+    We claim that $(A, B)$ is a $d$-cut of $G$. Let $F \subseteq E_S$ be the set of edges with one endpoint in $A$ and the other in $B$.
+    Note that $G - F$ is disconnected due to the construction of $A$ and $B$.
+    If there is some $v \in A$ with more than $d$ neighbors in $B$, we obtain that there is some clique of equal size in $H[S]$, contradicting the hypothesis that this subgraph belongs to $\mathcal{G}_d$.
+\end{proof}
+
+\input{sections/tw.tex}
+
+
+\begin{theorem}\label{thm:FPT-crossing}
+    For every $d \geq 1$, there is an $\FPT$ algorithm for \pname{$d$-Cut} parameterized by $k$, the maximum number of edges crossing the cut.
+\end{theorem}
+
+\begin{proof}
+    For each pair of vertices $s,t \in V(G)$ that do not belong to the private cliques, our goal is to find a subset of vertices $S \subseteq V(L(G))$ of size at most $k$ that separates $s$ and $t$ such that $L(G)[S] \in \mathcal{G}_d$.
+    This is precisely what is provided by Theorem~\ref{thm:marx}, and the correctness of this approach is guaranteed by Lemma~\ref{lem:cut_mincut}.
+    Since we perform a quadratic number of calls to the  algorithm given by Theorem~\ref{thm:marx}, our algorithm still runs in $\FPT$ time.
+\end{proof}
+
+As to the running time of the $\FPT$ algorithm given by Theorem~\ref{thm:FPT-crossing}, the treewidth reduction technique of~\cite{marx_treewidth_reduction} relies on the construction of a monadic second order logic (MSOL) expression and Courcelle's Theorem~\cite{courcelle_theorem} to guarantee fixed-parameter tractability, and therefore it is hard to provide an explicit running time in terms of $k$.
+
+
+\subsection{Kernelization and distance to cluster}
+\label{sec:kernelization}
+
+The proof of the following theorem consists of a simple generalization to every $d \geq 1$ of the construction given by Komusiewicz et al.~\cite{matching_cut_ipec}  for $d=1$.
+
+\begin{theorem}\label{thm:no-kernel}
+    For any fixed $d \geq 1$, \pname{$d$-Cut} does not admit a polynomial kernel when simultaneously parameterized by $k$, $\Delta$, and $\tw(G)$, unless $\NP \subseteq \coNP/\poly$.
+\end{theorem}
+
+\begin{proof}
+    We show that the problem cross-composes into itself.
+    Start with $t$ instances $G_1, \dots, G_t$ of \pname{$d$-Cut}.
+    First, pick an arbitrary vertex $v_i \in V(G_i)$, for each $i \in [t]$.
+    Second, for $i \in [t-1]$,  add a copy of $K_{2d}$, call it $K(i)$, every edge between $v_i$ and $K(i)$, and every edge between $K(i)$ and $v_{i+1}$.
+    This concludes the construction of $G$, which  for $d=1$ coincides with that presented by Komusiewicz et al.~\cite{matching_cut_ipec}.
+
+    Suppose that $(A, B)$ is a $d$-cut of some $G_i$ and that $v_i \in A$.
+    Note that $(V(G) \setminus B, B)$ is a $d$-cut of $G$ since the only edges in the cut are those between $A$ and $B$.
+    For the converse, take some $d$-cut $(A, B)$ of $G$ and note that every vertex in the set $\{v_t\} \bigcup_{i \in [t-1]}\{v_i\} \cup K(i)$ is contained in the same side of the partition, say $A$.
+    Since $B \neq \emptyset$, there is some $i$ such that $B \cap V(G_i) \neq \emptyset$, which implies that there is some $i$ (possibly more than one) such that $(A \cap V(G_i), B \cap V(G_i))$ must be a $d$-cut of $G_i$.
+
+    That the treewidth, maximum degree, and number of edges crossing the partition are bounded by $n$, the maximum number of vertices of the graphs $G_i$, is a trivial observation.
+\end{proof}
+
+We now proceed to show that \pname{$d$-Cut} admits a polynomial kernel when parameterizing by the \tdef{distance to cluster} parameter, denoted by $\dc$.
+A \tdef{cluster graph} is a graph such that every connected component is a clique; the \emph{distance to cluster} of a graph $G$ is the minimum number of vertices we must remove from $G$ to obtain a cluster graph.
+Our results are heavily inspired by the work of Komusiewicz et al.~\cite{matching_cut_ipec}.
+Indeed, most of our reduction rules are natural generalizations of theirs. However, we need some extra observations and rules that only apply for $d \geq 2$, such as Rule~\ref{rule:pattern_removal}.
+
+
+%\ig{explain which are the main new ones, and that we will highlight later the main differences with respect to the rules for $d=1$}
+
+We denote by $U = \{U_1, \dots, U_t\}$ a set of vertices such that $G - U$ is a cluster graph, and each $U_i$ is called a \tdef{monochromatic part} or \tdef{monochromatic set} of $U$, and we will maintain the invariant that these sets are indeed monochromatic. Initially, we set each $U_i$ as a singleton.
+In order to simplify the analysis of our instance, for each $U_i$ of size at least two, we will have a private clique of size $2d$ adjacent to every vertex of $U_i$, which we call $X_i$.
+The \tdef{merge} operation between $U_i$ and $U_j$ is the following modification: delete $X_i \cup X_j$, set $U_i$ as $U_i \cup U_j$, $U_j$ as empty, and add a new clique of size $2d$, $X_{i,j}$, which is adjacent to every element of the new $U_i$.
+We say that an operation is \textit{safe} if the resulting instance  is a $\YES$ instance if and only if the original instance was.
+
+\begin{observation}
+    If $U_i \cup U_j$ is monochromatic, merging $U_i$ and $U_j$ is safe.
+\end{observation}
+
+%\ig{Explain why we need the second case of the following rule, compared to the equivalent one in~\cite{matching_cut_ipec}}
+
+It is worth mentioning that the second case of the following rule is not needed in the corresponding rule in~\cite{matching_cut_ipec}; we need it here to prove the safeness of Rules~\ref{rule:super_small} and~\ref{rule:pattern_removal}.
+
+\begin{rrule}
+    \label{rule:trivial}
+    Suppose that $G - U$ has some cluster $C$ such that
+    \begin{enumerate}
+        \item $(C, V(G) \setminus C)$ is a $d$-cut, or
+        \item $|C| \leq 2d$ and there is $C' \subseteq C$ such that $(C', V(G) \setminus C')$ is a $d$-cut.
+    \end{enumerate}
+    Then output $\YES$.
+\end{rrule}
+
+After applying Rule~\ref{rule:trivial}, for every cluster $C$, $C$  has some vertex with at least $d+1$ neighbors in $U$, or there is some vertex of $U$ with at least $d+1$ neighbors in $C$.
+Moreover, note that no cluster $C$ with at least $2d+1$ vertices can be partitioned in such a way that one side of the cut is composed only by a proper subset of vertices of $C$, i.e., $C$ is monochromatic
+
+The following definition is a natural generalization of the definition of the set $N^2$ given by Komusiewicz et al.~\cite{matching_cut_ipec}.
+Essentially, it enumerates some of the cases where a vertex, or set of vertices, is monochromatic, based on its relationship with $U$.
+However, there is a crucial difference that keeps us from achieving equivalent bounds both in terms of running time and size of the kernel, and which makes the analysis and some of the rules more complicated than in~\cite{matching_cut_ipec}.
+Namely, for a vertex to be forced into a particular side of the cut, it must have at least $d+1$ neighbors in that side; moreover, a vertex of $U$ being adjacent to $2d$ vertices of a cluster $C$ implies that $C$ is monochromatic.
+Only if $d=1$, i.e., when we are dealing with matching cuts, the equality $d+1 = 2d$ holds.
+This gap between $d+1$ and $2d$ is the main difference between our kernelization algorithm for general $d$ and the one shown in~\cite{matching_cut_ipec} for \pname{Matching Cut}, and the main source of the differing complexities we obtain. In particular, for $d=1$ the fourth case of the following definition is a particular case of the third one, but this is not true anymore for $d \geq 2$.
+Figure~\ref{fig:n2d} illustrates the set of vertices introduced in Definition~\ref{def:n2d}.
+
+\begin{definition}
+    \label{def:n2d}
+    For a monochromatic part $U_i \subseteq U$, let $N^{2d}(U_i)$ be the set of vertices $v \in V(G) \setminus U$ for which at least one of the following holds:
+
+    \begin{enumerate}
+        \item $v$ has at least $d+1$ neighbors in $U_i$.
+        \item $v$ is in a cluster $C$ of size at least $2d+1$ in $G - U$ such that there is some vertex of $C$ with at least $d+1$ neighbors in $U_i$.
+        \item $v$ is in a cluster $C$ of $G - U$ and some vertex in $U_i$ has $2d$ neighbors in $C$.
+        \item $v$ is in a cluster $C$ of $G - U$ of size at least $2d+1$ and some vertex in $U_i$ has $d+1$ neighbors in $C$.
+    \end{enumerate}
+\end{definition}
+
+\begin{figure}[!htb]
+        \centering
+        \begin{tikzpicture}[scale=1, rotate = 0]
+            \GraphInit[unit=3,vstyle=Normal]
+            \SetVertexNormal[Shape=circle, FillColor=black, MinSize=1pt]
+            \tikzset{VertexStyle/.append style = {inner sep = 1.2, outer sep = \outers}}
+            \SetVertexNoLabel
+            \node at (-2.6, 0) {$U_i$};
+            \draw (0,0) ellipse (2cm and 0.3cm);
+            \Vertex[x=-1.2, y=0]{x0}
+            \Vertex[x=-0.4, y=0]{x1}
+            \Vertex[x=0.4, y=0]{x2}
+            \Vertex[x=1.2, y=0]{x3}
+
+            \Vertex[x=-3.5, y=-2.3]{c1}
+            \Edge(c1)(x0)
+            \Edge(c1)(x1)
+            \Edge(c1)(x2)
+
+            \begin{scope}[scale=0.8, shift={(-1.5,-4)}]
+                \tikzset{VertexStyle/.append style = {inner sep = 1.2pt, outer sep = \outers}}
+                \begin{scope}[rotate=90]
+                    \grComplete[RA=1, prefix=p]{5}
+                \end{scope}
+                \Edge(p0)(x0)
+                \Edge(p0)(x1)
+                \Edge(p0)(x2)
+            \end{scope}
+
+            \begin{scope}[scale=0.8, shift={(2,-4)}]
+                \tikzset{VertexStyle/.append style = {inner sep = 1.2pt, outer sep = \outers}}
+                \begin{scope}[rotate=60]
+                    \grComplete[RA=1, prefix=t]{5}
+                \end{scope}
+                \Edge(x2)(t0)
+                \Edge(x2)(t1)
+                \Edge[style = bend left](x2)(t4)
+                \Edge(x2)(t2)
+            \end{scope}
+
+            \begin{scope}[scale=0.8, shift={(6,-3)}]
+                \tikzset{VertexStyle/.append style = {inner sep = 1.2pt, outer sep = \outers}}
+                \begin{scope}[rotate=75]
+                    \grComplete[RA=1, prefix=q]{6}
+                \end{scope}
+                \Edge(x3)(q0)
+                \Edge(x3)(q1)
+                \Edge(x3)(q2)
+            \end{scope}
+            %\draw (-4.3,-4.5) -- (-4.3, -1) -- (6.5, -1) -- (6.5,-4.5) -- (-4.3, -4.5);
+            %\node at (5, -4) {$N^{2d}(U_i)$};
+        \end{tikzpicture}
+        \caption{The four cases that define membership in $N^{2d}(U_i)$ for $d = 2$, from left to right. \label{fig:n2d}}
+    \end{figure}
+
+\begin{observation}
+    For every monochromatic part $U_i$, $U_i \cup N^{2d}(U_i)$ is monochromatic.
+\end{observation}
+
+The next rules aim to increase the size of monochromatic sets.
+In particular, Rule~\ref{rule:transitivity} translates the transitivity of the monochromatic property, while Rule~\ref{rule:attraction} identifies a case where merging the monochromatic sets is inevitable.
+
+\begin{rrule}
+    \label{rule:transitivity}
+    If $N^{2d}(U_i) \cap N^{2d}(U_j) \neq \emptyset$, merge $U_i$ and $U_j$.
+\end{rrule}
+
+\begin{rrule}
+    \label{rule:attraction}
+    If there there is a set of $2d+1$ vertices $L \subseteq V(G)$ with two common neighbors $u,u'$ such that $u \in U_i$ and $u' \in U_j$, merge $U_i$ and $U_j$.
+\end{rrule}
+
+\begin{sproof}{\ref{rule:attraction}}
+    Suppose that in some $d$-cut $(A, B)$, $u \in A$ and $u' \in B$, this implies that at most $d$ elements of $L$ are in $A$ and at most $d$ are in $B$, which is impossible since $|L| = 2d+1$.
+\end{sproof}
+
+We say that a cluster is \textit{small} if it has at most $2d$ vertices, and \textit{big} otherwise.
+Moreover, a vertex in a cluster is \textit{ambiguous} if it has neighbors in more than one $U_i$.
+A cluster is \tdef{ambiguous} if it has an ambiguous vertex, and \tdef{fixed} if it is contained in some $N^{2d}(U_i)$.
+
+\begin{observation}
+    \label{obs:fix_amb}
+    If $G$ is reduced by Rule~\ref{rule:trivial}, every big cluster is ambiguous or fixed.
+\end{observation}
+
+\begin{proof}
+    Since Rule~\ref{rule:trivial} cannot be applied, every cluster $C$ has either one vertex $v$ with at least $d + 1$ neighbors in $U$ or there is some vertex of a set $U_i$ with $d + 1$ neighbors in $C$.
+    In the latter case, by applying the fourth case in the definition of $N^{2d}(U_i)$, we conclude that $C$ is fixed.
+    In the former case, either $v$ has $d+1$ neighbors in the same $U_i$, in which case $C$ is fixed, or its neighborhood is spread across multiple monochromatic sets, and so $v$ and, consequently, $C$ are ambiguous.
+\end{proof}
+
+Our next goal is to bound the number of vertices outside of $U$.
+
+\begin{rrule}
+    \label{rule:fusion}
+    If there are two clusters $C_1, C_2$ contained in some $N^{2d}(U_i)$, then add every edge between $C_1$ and $C_2$.
+\end{rrule}
+
+\begin{sproof}{\ref{rule:fusion}}
+    It follows directly from the fact that adding edges between vertices of a monochromatic set preserves the existence of a $d$-cut.
+\end{sproof}
+
+The next lemma follows from the pigeonhole principle and exhaustive application of Rule~\ref{rule:fusion}.
+
+\begin{lemma}
+    \label{lem:fixed_clusters}
+    If $G$ has been reduced by Rules~\ref{rule:trivial} through~\ref{rule:fusion}, then $G$ has $\bigO{|U|}$ fixed clusters.
+\end{lemma}
+
+\begin{rrule}
+    \label{rule:shrink}
+    If there is some cluster $C$ with at least $2d+2$ vertices such that there is some $v \in C$ with no neighbors in $U$, remove $v$ from $G$.
+\end{rrule}
+
+\begin{sproof}{\ref{rule:shrink}}
+    That $G$ has a $d$-cut if and only if $G - v$ has a $d$-cut follows directly from the hypothesis that $C$ is monochromatic in $G$ and the fact that $|C \setminus \{v\}| \geq 2d + 1$ implies that $C \setminus \{v\}$ is monochromatic in $G - v$.
+\end{sproof}
+
+By Rule~\ref{rule:shrink}, we now have the additional property that, if $C$ has more than $2d+1$ vertices, all of them have at least one neighbor in $U$. The next rule provides a uniform structure between a big cluster $C$ and the sets $U_i$ such that $C \subseteq N^{2d}(U_i)$.
+
+\begin{rrule}
+    \label{rule:normalization1}
+    If a cluster $C$ has at least $2d+1$ elements and there is some $U_i$ such that $C \subseteq N^{2d}(U_i)$, remove all edges between $C$ and $U_i$, choose $u \in U_i$, $\{v_1, \dots, v_{d+1}\} \subseteq C$ and add the edges $\{uv_i\}_{i \in [d+1]}$ to $G$.
+\end{rrule}
+
+\begin{sproof}{\ref{rule:normalization1}}
+    Let $G'$ be the graph obtained after the operation is applied.
+    If $G$ has some $d$-cut $(A,B)$, since $U_i \cup N^{2d}(U_i)$ is monochromatic, no edge between $U_i$ and $C$ crosses the cut, so $(A,B)$ is also a $d$-cut of $G'$.
+    For the converse, take a $d$-cut $(A', B')$ of $G'$.
+    Since $C$ has at least $2d+1$ vertices and there is some $u \in U_i$ such that $|N(u) \cap C| = d+1$, $C \in N^{2d}(U_i)$ in $G'$.
+    Therefore, no edge between $C$ and $U_i$ crosses the cut and $(A', B')$ is also a $d$-cut of $G$.
+\end{sproof}
+
+We have now effectively bounded the number of vertices in big clusters by a polynomial in $U$, as shown below.
+
+\begin{lemma}
+    \label{lem:bound1}
+    If $G$ has been reduced by Rules~\ref{rule:trivial} through~\ref{rule:normalization1}, then $G$ has $\bigO{d|U|^2}$ ambiguous vertices and $\bigO{d|U|^2}$ big clusters, each with $\bigO{d|U|}$ vertices.
+\end{lemma}
+
+\begin{proof}
+    To show the bound on the number of ambiguous vertices, take any two vertices $u \in U_i$, $u' \in U_j$.
+    Since we have $\binom{|U|}{2}$ such pairs, if we had at least $(2d + 1)\binom{|U|}{2}$ ambiguous vertices, by the pigeonhole principle, there would certainly be $2d+1$ vertices in $V \setminus U$ that are adjacent to one pair, say $u$ and $u'$.
+    This, however, contradicts the hypothesis that Rule~\ref{rule:attraction} has been applied, and so we have $\bigO{d|U|^2}$ ambiguous vertices.
+
+    The above discussion, along with Lemma~\ref{lem:fixed_clusters} and Observation~\ref{obs:fix_amb}, imply that the number of big clusters is $\bigO{d|U|^2}$.
+    For the bound on their sizes, take some cluster $C$ with at least $2d + 2$ vertices.
+    Due to the application of Rule~\ref{rule:shrink}, every vertex of $C$ has at least one neighbor in $U$.
+    Moreover, there is at most one $U_i$ such that $C \subseteq N^{2d}(U_i)$, otherwise we would be able to apply Rule~\ref{rule:transitivity}.
+
+    Suppose first that there is such a set $U_i$.
+    By Rule~\ref{rule:normalization1}, there is only one $u \in U_i$ that has neighbors in $C$; in particular, it has $d+1$ neighbors.
+    Now, every $v \in U_j$, for every $j\neq i$, has at most $d$ neighbors in $C$, otherwise $C \subseteq N^{2d}(U_j)$ and Rule~\ref{rule:transitivity} would have been applied.
+    Therefore, we conclude that $C$ has at most $(d+1) +  \sum_{v \in U \setminus U_i} |N(u) \cap C| \leq (d+1) + d|U| \in \bigO{d|U|}$ vertices.
+
+    Finally, suppose that there is no $U_i$ such that $C \subseteq N^{2d}(U_i)$.
+    A similar analysis from the previous case can be performed: every $u \in U_i$ has at most $d$ neighbors in $C$, otherwise $C \subseteq N^{2d}(U_i)$ and we conclude that $C$ has at most $\sum_{v \in U} |N(u) \cap C| \leq d|U| \in \bigO{d|U|}$ vertices.
+\end{proof}
+
+
+We are now left only with an unbounded number of small clusters.
+A cluster $C$ is \tdef{simple} if it is not ambiguous, that is, if for each $v \in C$, $v$ has neighbors in a single $U_i$.
+Otherwise, $C$ is ambiguous and, because of Lemma~\ref{lem:bound1}, there are at most $\bigO{d|U|^2}$ such clusters.
+For a simple cluster $C$ and a vertex $v \in C$, we denote by $U(v)$ the monochromatic part of $U$ to which $v$ is adjacent.
+
+\begin{rrule}
+    \label{rule:super_small}
+    If $C$ is a simple cluster with at most $d+1$ vertices, remove $C$ from $G$.
+\end{rrule}
+
+\begin{sproof}{\ref{rule:super_small}}
+    Let $G' = G - C$.
+    Suppose $G$ has a $d$-cut $(A,B)$ and note that $A \nsubseteq C$ and $B \nsubseteq C$ since Rule~\ref{rule:trivial} does not apply.
+    This implies that $(A \setminus C, B \setminus C)$ is a valid $d$-cut of $G'$.
+    For the converse, take a $d$-cut $(A', B')$ of $G'$, define $C_A = \{v \in C \mid U(v) \subseteq A\}$, and define $C_B$ similarly; we claim that $(A' \cup C_A, B' \cup C_B)$ is a $d$-cut of $G$.
+    To see that this is the case, note that each vertex of $C_A$ (resp. $C_B$) has at most $d$ edges to $C_B$ (resp. $C_A$) and, since $C$ is simple, $C_A$ (resp. $C_B$) has no other edges to $B'$ (resp. $A'$).
+\end{sproof}
+
+After applying the previous rule, every cluster $C$ not yet analyzed has size $d+2 \leq |C| \leq 2d$ which, in the case of the \pname{Matching Cut} problem, where $d=1$, is empty.
+To deal with these clusters, given a $d$-cut $(A, B)$, we say that a vertex $v$ is in its \tdef{natural assignment} if $v \cup U(v)$ is in the same side of the cut; otherwise the vertex is in its \tdef{unnatural assignment}.
+Similarly, a cluster is \tdef{unnaturally assigned} if it has an unnaturally assigned vertex, otherwise it is \tdef{naturally assigned}.
+
+\begin{observation}
+    \label{obs:constrained_unnatural}
+    Let $\mathcal{C}$ be the set of all simple clusters with at least $d+2$ and no more than $2d$ vertices, and $(A,B)$ a partition of $V(G)$.
+    If there are $d|U|+1$ edges $uv$, $v \in C \in \mathcal{C}$ and $u \in U$, such that $uv$ is crossing the partition, then $(A,B)$ is not a $d$-cut.
+\end{observation}
+
+\begin{proof}
+    Since there are $d|U| + 1$ edges crossing the partition between $\mathcal{C}$ and $U$, there must be at least one $u \in U$ with $d+1$ neighbors in the other set of the partition.
+\end{proof}
+
+\begin{corollary}
+    \label{cor:constrained_unnatural}
+    In any $d$-cut of $G$, there are at most $d|U|$ unnaturally assigned vertices.
+\end{corollary}
+
+%\ig{HERE}
+
+Our next lemma limits how many clusters in $\mathcal{C}$ relate in a similar way to $U$; we say that two simple clusters $C_1, C_2$ have the same \tdef{pattern} if they have the same size $s$ and there is a total ordering of $C_1$ and another of $C_2$ such that, for every $i \in [s]$, $v_i^1 \in C_1$ and $v_i^2 \in C_2$ satisfy $U(v_i^1) = U(v_i^2)$.
+Essentially, clusters that have the same pattern have neighbors in exactly the same monochromatic sets of $U$ and the same multiplicity in terms of how many of their vertices are adjacent to a same monochromatic set $U_i$. Note that the actual neighborhoods in the sets $U_i$'s do not matter in order for two clusters to have the same pattern.
+Figure~\ref{fig:assignment} gives an example of a maximal set of unnaturally assigned clusters; that is, any other cluster with the same pattern as the one presented must be naturally assigned, otherwise some vertex of $U$ will violate the $d$-cut property.
+As shown by the following Lemma, we may discard clusters that must be naturally assigned, as we can easily extend the kernel's $d$-cut, if it exists, to include them.
+
+\begin{figure}[!htb]
+        \centering
+        \begin{tikzpicture}[rotate = 90]
+                %\draw[help lines] (-5,-5) grid (5,5);
+                \GraphInit[unit=3,vstyle=Normal]
+                \SetVertexNormal[Shape=circle, FillColor = black, MinSize=3pt]
+                \tikzset{VertexStyle/.append style = {inner sep = \inners, outer sep = \outers}}
+                \SetVertexNoLabel
+                \begin{scope}[shift={(-3, 0)}]
+                    \tikzset{VertexStyle/.append style = {shape = rectangle, inner sep = 2pt}}
+                    \node at (0, 2.6) {$U_2$};
+                    \draw (-0.3, 2.3) rectangle (0.3, -2.3);
+                    \Vertex[x = 0, y = 2]{u11}
+                    \Vertex[x = 0, y = -2]{u12}
+                \end{scope}
+                \begin{scope}[shift={(3, 0)}]
+                    \node at (0, 2.6) {$U_1$};
+                    \draw (-0.3, 2.3) rectangle (0.3, -2.3);
+                    \Vertex[x = 0, y = 2]{u21}
+                    \Vertex[x = 0, y = -2]{u22}
+                \end{scope}
+
+                \begin{scope}[shift={(0, 3)}]
+                    \grComplete[RA=0.6, prefix=q1]{6}
+                    \begin{scope}
+                        \tikzset{VertexStyle/.append style = {shape = rectangle, inner sep = 2pt}}
+                        \Vertex[Node]{q10}
+                        \Vertex[Node]{q11}
+                        \Vertex[Node]{q15}
+                    \end{scope}
+                    \Edge(u11)(q13)
+                    \Edge(u12)(q14)
+                    \Edge(u21)(q10)
+                    \Edge(u22)(q15)
+                \end{scope}
+
+                \begin{scope}[shift={(0, 1)}]
+                    \grComplete[RA=0.6, prefix=q2]{6}
+                    \begin{scope}
+                        \tikzset{VertexStyle/.append style = {shape = rectangle, inner sep = 2pt}}
+                        \Vertex[Node]{q20}
+                        \Vertex[Node]{q21}
+                        \Vertex[Node]{q25}
+                    \end{scope}
+                    \Edge(u11)(q22)
+                    \Edge(u12)(q23)
+                    \Edge(u22)(q20)
+                    \Edge(u21)(q21)
+                \end{scope}
+
+                \begin{scope}[shift={(0, -1)}]
+                    \grComplete[RA=0.6, prefix=q3]{6}
+                    \begin{scope}
+                        \tikzset{VertexStyle/.append style = {shape = rectangle, inner sep = 2pt}}
+                        \Vertex[Node]{q30}
+                        \Vertex[Node]{q31}
+                        \Vertex[Node]{q35}
+                    \end{scope}
+                    \Edge(u12)(q34)
+                    \Edge(u11)(q33)
+                    \Edge(u21)(q30)
+                    \Edge(u22)(q35)
+                \end{scope}
+
+                \begin{scope}[shift={(0, -3)}]
+                    \grComplete[RA=0.6, prefix=q4]{6}
+                    \begin{scope}
+                        \tikzset{VertexStyle/.append style = {shape = rectangle, inner sep = 2pt}}
+                        \Vertex[Node]{q40}
+                        \Vertex[Node]{q41}
+                        \Vertex[Node]{q45}
+                    \end{scope}
+                    \Edge(u11)(q42)
+                    \Edge(u12)(q43)
+                    \Edge(u22)(q40)
+                    \Edge(u21)(q41)
+                \end{scope}
+
+        \end{tikzpicture}
+        \caption{Example for $d=4$ of a maximal set of unnaturally assigned clusters. Squared (resp. circled) vertices would be assigned to $A$ (resp. $B$).\label{fig:assignment}}
+    \end{figure}
+
+%\ig{MISSING FIGURES}
+
+
+\begin{lemma}
+    \label{lem:patterns}
+    Let $\mathcal{C}^* \subseteq \mathcal{C}$ be a subfamily of simple clusters, all with the same pattern, with $|\mathcal{C}^*| > d|U| + 1$. Let $C$ be some cluster of $\mathcal{C}^*$, and $G' = G - C$. Then
+    $G$ has a $d$-cut if and only if $G'$ has a $d$-cut.
+\end{lemma}
+
+\begin{proof}
+    Since by Rule~\ref{rule:trivial} no subset of a small cluster is alone in a side of a partition and, consequently, $U$ intersects both sides of the partition, if $G$ has a $d$-cut, so does $G'$.
+
+    For the converse, let $(A', B')$ be a $d$-cut of $G'$.
+    First, by Corollary~\ref{cor:constrained_unnatural}, we know that at least one of the clusters of $\mathcal{C}^* \setminus \{C\}$, say $C_{{\sf n}}$, is naturally assigned.
+    Since all the clusters in $\mathcal{C^*}$ have the same pattern, this guarantees that {\sl any} of the vertices of a naturally assigned cluster cannot have more than $d$ neighbors in the other side of the partition.
+
+    Let $(A,B)$ be the bipartition of $V(G)$ obtained from $(A',B')$ such that $u \in C$ is in $A$ (resp. $B$) if and only if $U(u) \subseteq A$ (resp. $U(u) \subseteq B$); that is, $C$ is naturally assigned.
+    Define $C_A = C \cap A$ and $C_B = C \cap B$.
+    Because $|C| = |C_{{\sf n}}|$ and both belong to $\mathcal{C}^*$, we know that for every $u \in C_A$, it holds that $|N(u) \cap C_B| \leq d$; moreover, note that $N(u) \cap (B \setminus C) = \emptyset$. A symmetric analysis applies to every $u \in C_B$.
+    This implies that no vertex of $C$ has additional neighbors in the other side of the partition outside of its own cluster and, therefore, $(A, B)$ is a $d$-cut of $G$.
+\end{proof}
+
+The safeness of our last rule follows directly from Lemma~\ref{lem:patterns}.
+
+\begin{rrule}
+    \label{rule:pattern_removal}
+    If there is some pattern such that the number of simple clusters with that pattern is at least $d|U|+2$, delete all but $d|U|+1$ of them.
+\end{rrule}
+
+\begin{lemma}
+    \label{lem:bound2}
+    After exhaustive application of Rules~\ref{rule:trivial} through~\ref{rule:pattern_removal}, $G$ has $\bigO{d|U|^{2d}}$ small clusters and $\bigO{d^2|U|^{2d+1}}$ vertices in these clusters.
+\end{lemma}
+
+\begin{proof}
+    By Rule~\ref{rule:super_small}, no small cluster with less than $d+2$ vertices remains in $G$.
+    Now, for the remaining sizes, for each $d+2 \leq s \leq 2d$, and each pattern of size $s$, by Rule~\ref{rule:pattern_removal} we know that the number of clusters with $s$ vertices that have the same pattern is at most $d|U| + 1$.
+    Since we have at most $|U|$ possibilities for each of the $s$ vertices of a cluster, we end up with $\bigO{|U|^{s}}$ possible patterns for clusters of size $s$.
+    Summing all of them up, we get that we have $\bigO{|U|^{2d}}$ patterns in total, and since each one has at most $d|U| + 1$ clusters of size at most $2d$, we get that we have at most $\bigO{d^2|U|^{2d+1}}$ vertices in those clusters.
+\end{proof}
+
+The exhaustive application of all the above rules and their accompanying lemmas are enough to show that indeed, there is a polynomial kernel for \pname{$d$-Cut} when parameterized by distance to cluster.
+
+
+\begin{theorem}
+    When parameterized by distance to cluster $\dc(G)$, \pname{$d$-Cut} admits a polynomial kernel with $\bigO{d^2\cdot\dc(G)^{2d+1}}$ vertices that can be computed in $\bigO{d^4\cdot\dc(G)^{2d+1}(n+m)}$ time.
+\end{theorem}
+
+\begin{proof}
+    The algorithm begins by finding a set $U$ such that $G - U$ is a cluster graph.
+    Note that $|U| \leq 3\dc(G)$ since a graph is a cluster graph if and only if it has no induced path on three vertices: while there is some $P_3$ in $G$, we know that at least one its vertices must be removed, but since we don't know which one, we remove all three; thus, $U$ can be found in $\bigO{\dc(G)(n + m)}$ time.
+    After the exhaustive application of Rules~\ref{rule:trivial} through~\ref{rule:pattern_removal}, by Lemma~\ref{lem:bound1}, $V(G) \setminus U$ has at most $\bigO{d^2\cdot\dc(G)^3}$ vertices in clusters of size at least $2d+1$.
+    By Rule~\ref{rule:super_small}, $G$ has no simple cluster of size at most $d+1$.
+    Ambiguous clusters of size at most $2d$, again by Lemma~\ref{lem:bound1}, also comprise only $\bigO{d^2\cdot\dc(G)^2}$ vertices of $G$.
+    Finally, for simple clusters of size between $d+2$ and $2d$, Lemmas~\ref{lem:patterns} and~\ref{lem:bound2} guarantee that there are $\bigO{d^2\cdot\dc(G)^{2d+1}}$ vertices in small clusters and, consequently, this many vertices in $G$.
+
+    As to the running time, first, computing and maintaining $N^{2d}(U_i)$ takes $\bigO{d\cdot\dc(G)n}$ time.
+    Rule~\ref{rule:trivial} is applied only at the beginning of the kernelization, and runs in $\bigO{2^{2d}d(n + m)}$ time.
+    Rules~\ref{rule:transitivity} and~\ref{rule:attraction} can both be verified in $\bigO{d\cdot\dc(G)^2(n + m)}$ time, since we are just updating $N^{2d}(U_i)$ and performing merge operations.
+    Both are performed only $\bigO{\dc(G)^2}$ times, because we only have this many pairs of monochromatic parts.
+    The straightforward application of Rule~\ref{rule:fusion} would yield a running time of $\bigO{n^2}$. However, we can ignore edges that are interior to clusters and only maintain which vertices belong together; this effectively allows us to perform this rule in $\bigO{n}$ time, which, along with its $\bigO{n}$ possible applications, yields a total running time of $\bigO{n^2}$ for this rule.
+    Note that, when outputting the instance itself, we must write the edges explicitly; this does not change the final complexity of the algorithm, as each of the $\bigO{\dc(G)^{2d+1}}$ clusters has $\bigO{d\cdot\dc(G)}$ vertices.
+    Rule~\ref{rule:shrink} is directly applied in $\bigO{n}$ time; indeed, all of its applications can be performed in a single pass.
+    Rule~\ref{rule:normalization1} is also easily applied in $\bigO{n + m}$ time. Moreover, it is only applied $\bigO{\dc(G)}$ times, since, by Lemma~\ref{lem:bound1}, the number of fixed clusters is linear in $\dc(G)$; furthermore, we may be able to reapply Rule~\ref{rule:normalization1} directly to the resulting cluster, at no additional complexity cost.
+    The analysis for Rule~\ref{rule:super_small} follows the same argument as for Rule~\ref{rule:shrink}.
+    Finally, Rule~\ref{rule:pattern_removal} is the bottleneck of our kernel, since it must check each of the possible $\bigO{\dc(G)^{2d}}$ patterns, spending $\bigO{n}$ time for each of them.
+    Each pattern is only inspected once because the number of clusters in a pattern can no longer achieve the necessary bound for the rule to be applied once the excessive clusters are removed.
+\end{proof}
+
+In the next theorems, we provide $\FPT$ algorithms for \textsc{$d$-Cut} parameterized by distance to cluster and distance to co-cluster, respectively. Both are based on dynamic programming, with the first being considerably simpler than the one given by Komusiewicz  et al.~\cite{matching_cut_ipec} for $d=1$, which applies four reduction rules and encodes the problem in a 2-\textsc{SAT} formula.
+However, for $d=1$ our algorithm is slower, namely $\bigOs{4^{\dc( G )}}$ compared to  $\bigOs{2^{\dc( G )}}$.
+Observe that the minimum distance to cluster and co-cluster sets can be computed in time $1.92^{\dc( G )} \cdot \bigO{ n^2 }$
+and $1.92^{\dcc( G )} \cdot \bigO{n^2 }$, respectively~\cite{branching-cluster}. Thus, in the proofs of Theorems~\ref{thm:fpt_cluster} and~\ref{thm:fpt_cocluster}, we can safely assume that we have these sets at hand.
+
+
+\begin{theorem}
+    \label{thm:fpt_cluster}
+    For every integer $d \geq 1$, there is an algorithm that solves \pname{$d$-Cut} in time $\bigO{4^d(d+1)^{\dc(G)}2^{\dc(G)}\dc(G)n^2}$.
+\end{theorem}
+
+\begin{proof}
+    
+    Let $U$ be a set such that $G - U$ is a cluster graph, $\mathcal{Q} = \{Q_1, \dots, Q_p\}$ be the family of clusters of $G - U$ and $\mathcal{Q}_i = \bigcup_{i \leq j \leq p} Q_j$.
+    Essentially, the following dynamic programming algorithm attempts to extend a given partition of $U$ in all possible ways by partitioning clusters, one at a time, while only keeping track of the degrees of vertices that belong to $U$.
+    Recall that we do not need to keep track of the degrees of the cluster vertices precisely because $G - U$ has no edge between clusters.
+
+    Formally, given a partition $U = A  \dcup B$, our table is a mapping $f : [p] \times \mathbb{Z}^{|A|} \times \mathbb{Z}^{|B|} \rightarrow \{0, 1\}$.
+    Each entry is indexed by $(i, \bmd_A, \bmd_B)$, where $i \in [p]$, $\bmd_A$ is a $|A|$-dimensional vector with the $j$-th coordinate begin denoted by $\bmd_A[j]$; $\bmd_B$ is defined analogously.
+    Our goal is to have $f(i, \bmd_A, \bmd_B) = 1$ if and only if there is a partition $(X, Y)$ of $U \cup \mathcal{Q}_i$ where $A \subseteq X$, $B \subseteq Y$ and $v_j \in A$ ($u_{\ell} \in B$) has at most $\bmd_A[j]$ ($\bmd_B[\ell]$) neighbors in $\mathcal{Q}_i$.
+
+    We denote by $P_d(i, \bmd_A, \bmd_B)$ the set of all partitions $L  \dcup R = Q_i$ such that every vertex $v \in L$ has $d_{B \cup R}(v) \leq d$, every $u \in R$ has $d_{A \cup L}(u) \leq d$, every $v_j \in A$, $d_R(v_j) \leq \bmd_A[j]$ and every $u_{\ell} \in B$, $d_L(u_{\ell}) \leq \bmd_B[\ell]$; note that, due to this definition, $(L, R) \neq (R, L)$.
+    In the following equations, which give the computations required to build our table, $\bmd_A(R)$ and $\bmd_B(L)$ are the updated values of the vertices of $A$ and $B$ after $R$ is added to $Y$ and $L$ to $X$, respectively.
+    \begin{align}
+        f(i, \bmd_A, \bmd_B) &= 0 \bigvee_{(L, R) \in P_d(i, \bmd_A, \bmd_B)} f(i+1,\bmd_A(R), \bmd_B(L))\label{eq:trans_dc}\\
+        f(p, \bmd_A, \bmd_B) &= 1, \text{if and only if $P_d(i, \bmd_A, \bmd_B) \neq \emptyset$.}\label{eq:stop_dc}
+    \end{align}
+
+    We proceed to show the correctness of the above by induction.
+    For the base case, i.e., when $|\mathcal{Q}| = p = 1$, we have that for $v_j \in A$ ($u_l \in B$),  $\bmd_A[j] = d - d_B(v_j)$ ($\bmd_B[j] = d - d_A(u_l)$) and a partition of $V(G)$ exists if and only if there is some partition $(L, R) \in P_d(1, \bmd_A, \bmd_B)$, where.
+    This case is covered by equation~(\ref{eq:stop_dc}).
+
+    So let $p > 1$ and $(i, \bmd_A, \bmd_B)$ be an entry of our table.
+    First, if $|Q_i| \geq 2d+1$, $Q_i$ is monochromatic, which implies that $|P_d(i, \bmd_A, \bmd_B)| \leq 2$.
+    Therefore, we may assume that, $|P_d(i, \bmd_A, \bmd_B)| \leq 2^{2d}$.
+    $P_d(i, \bmd_A, \bmd_B) = \emptyset$ implies that any partition $(L, R)$ of $Q_i$ causes a vertex in $L$ ($R$) to have more than $d$ neighbors in $B \cup R$ ($A \cup L$), which is easily checked for in $\bigO{n|U|}$-time, or some vertex $v_j \in A$ ($u_l \in B$) has $d_{Y \cup R}(v_j) > \bmd_A[j]$ ($d_{X \cup L}(u_l) > \bmd_B[l]$).
+    Either way, we have that no matter how we partition $\mathcal{Q}_i$, the available degree of some vertex is not enough, equation~(\ref{eq:trans_dc}) yields the correct answer.
+
+    However, if $P_d(i, \bmd_A, \bmd_B) \neq \emptyset$, the subgraph induced by $U \cup \mathcal{Q}_i$ has a $d$-cut separating $A$ and $B$ and respecting the limits of $\bmd_A$ and $\bmd_B$ if and only if there is some $(L, R) \in P_d(i, \bmd_A, \bmd_B)$ such that $U \cup \mathcal{Q}_{i+1}$ has a $d$-cut and each vertex of $A$ ($B$) has the size of its neighborhood in $\mathcal{Q}_{i+1}$ bounded by the respective coordinate of $\bmd_A(R)$ ($\bmd_B(L)$).
+    By the inductive hypothesis, there is such a partition of $\mathcal{Q}_{i+1}$ if and only if $f(i+1, \bmd_A(R), \bmd_B(L)) = 1$, concluding the proof of correctness.
+    Clearly, there is a $d$-cut separating $A$ and $B$ if $f(1, \bmd_A, \bmd_B) = 1$ where for every $v_j \in A$ ($u_l \in B$),  $\bmd_A[j] = d - d_B(v_j)$ ($\bmd_B[j] = d - \dgr_A(u_{\ell})$).
+
+    The complexity analysis is straightforward.
+    Recalling that $|P_d(i, \bmd_A, \bmd_B)| \leq 2^{2d}$, we have that each $f(i, \bmd_A, \bmd_B)$ can be computed in time $\bigO{4^d|U|n}$ and, since we have $\bigO{(d+1)^{|A| + |B|}p} \in \bigO{(d+1)^{|U|}p}$, given a partition $(A, B)$ of $U$, we can decide if there is $d$-cut separating $A$ and $B$ in $\bigO{4^d(d+1)^{|U|}|U|n^2}$-time.
+    To solve \pname{$d$-Cut} itself, we guess all $2^{|U|}$ partitions of $U$ and, since $|U| \in \bigO{\dc(G)}$, we obtain a total running time of $\bigO{4^d(d+1)^{\dc(G)}2^{\dc(G)}\dc(G)n^2}$.
+\end{proof}
+
+
+\begin{theorem}
+    \label{thm:fpt_cocluster}
+    For every integer $d \geq 1$, there is an algorithm solving \pname{$d$-Cut} in time $\bigO{32^d2^{\dcc(G)}(d+1)^{\dcc(G)+d}(\dcc(G)+d)n^2}$.
+\end{theorem}
+
+\begin{proof}
+    Let $U \subseteq V(G)$ be a set of $\bigO{\dcc(G)}$ vertices such that $G - U$ is a co-cluster graph with color classes $\varphi = \{F_1, \dots, F_t\}$.
+    Define $\mathcal{F} = \bigcup_{i \in [t]} F_i$ and suppose we are given a $d$-cut $(A,B)$ of $G[U]$.
+    First, note that if $t \geq 2d+1$, we have that some of the vertices of $\mathcal{F}$ form a clique of size $2d+1$, which is a monochromatic set; furthermore, every vertex $v \in \mathcal{F}$ but not in $Q$ has at least $d+1$ neighbors in $Q$.
+    This implies that $Q \cup \{v\}$ is monochromatic and, thus, $\mathcal{F}$ is a monochromatic set.
+    Checking if either $(A \cup \mathcal{F}, B)$ or $(A, B \cup \mathcal{F})$ is a $d$-cut can be done in $\bigO{n^2}$ time.
+
+    If the above does not apply, we have that $t \leq 2d$.
+    \begin{itemize}
+        \item Case 1: If $|\mathcal{F}| \leq 4d$ we can just try to extend $(A,B)$ with each of the $2^{|\mathcal{F}|}$ bipartitions of $\mathcal{F}$ in $\bigO{16^dn^2}$ time.
+    \end{itemize}
+
+    So now, let $\varphi_1 \dcup \varphi_2 = \varphi$ be a bipartition of the color classes, $\mathcal{F}_i = \{v \in F_j \mid F_j \in \varphi_i\}$, and, for simplicity, suppose that $|\mathcal{F}_1|~\leq~|\mathcal{F}_2|$.
+
+    \begin{itemize}
+        \item Case 2: If $|\mathcal{F}_1| \geq d+1$ and $|\mathcal{F}_2| \geq 2d+1$, we know that there is a set $Q \subseteq \mathcal{F}$ forming a (not necessarily induced) complete bipartite subgraph $K_{d+1, 2d+1}$, which is a monochromatic set.
+        Again, any $v \notin Q$ has at least $d_Q(v) \geq d+1$, from which we conclude that $Q \cup \{v\}$ is also monochromatic, implying that $\mathcal{F}$ is monochromatic.
+    \end{itemize}
+
+
+    If Case 2 is not applicable, either $|\mathcal{F}_1| \leq d$ and $|\mathcal{F}_2| \geq 2d+1$, or $|\mathcal{F}_2| \leq 2d$.
+    For the latter, note that this implies $|\mathcal{F}| \leq 4d$, which would have been solved by Case 1.
+    For the former, two cases remain:
+
+    \begin{itemize}
+        \item Case 3: Every $F_i \in \varphi_2$ has $|F_i| \leq 2d$. This implies that every $F \in \varphi$ has size bounded by $2d$ and that $|\mathcal{F}| \leq 4d^2$; we can simply try to extend $(A, B)$ with each of the $\bigO{2^{d^2}}$ partitions of $\mathcal{F}$, which can be done in $\bigO{2^{d^2}n^2}$ time.
+
+        \item Case 4: There is some $F_i \in \varphi_2$ with $|F_i| \geq 2d + 1$.
+        Its existence implies that $|\mathcal{F}| - |F_i| \leq d$, otherwise we would have concluded that $\mathcal{F}$ is a monochromatic set.
+        Since $\mathcal{F} \setminus F_i$ has at most $d$ vertices, the set of its bipartitions has size bounded by $2^d$.
+        So, given a bipartition $\mathcal{F}_A \dcup \mathcal{F}_B = \mathcal{F} \setminus F$, we define $A' := A \cup \mathcal{F}_A$ and $B' := B \cup \mathcal{F}_B$.
+        Finally, note that $G \setminus (A' \cup B')$ is a cluster graph where every cluster is a single vertex; that is, $\dc(G) \leq \dcc(G) + d$.
+        In this case, we can apply Theorem~\ref{thm:fpt_cluster}, and obtain the running time of $\bigO{4^d(d+1)^{\dcc(G)+d}(\dcc(G)+d)n^2}$; we omit the term $2^{\dcc(G) + d}$ since we already have an initial partial $d$-cut $(A', B')$.
+    \end{itemize}
+
+    For the total complexity of the algorithm, we begin by guessing the initial partition of $U$ into $(A,B)$, spending $\bigO{n^2}$ time for each of the $\bigO{2^{\dcc(G)}}$ possible bipartitions.
+    If $t \geq 2d+1$ we give the answer in $\bigO{n^2}$ time.
+    Otherwise, $t \leq 2d$.
+    If $|\mathcal{F}| \leq 4d$, then we spend $\bigO{16^dn^2}$ time to test all partitions of $\mathcal{F}$ and return the answer.
+    Else, for each of the $\bigO{4^d}$ partitions of $\varphi$, if one of them has a part with $d+1$ vertices and the other part has $2d+1$ vertices, we respond in $\bigO{n^2}$ time.
+    Finally, for the last two cases, we either need $\bigO{2^{d^2}n^2}$ time, or $\bigO{8^d(d+1)^{\dcc(G)+d}(\dcc(G)+d)n^2}$.
+    This yields a final complexity of $\bigO{32^d2^{\dcc(G)}(d+1)^{\dcc(G)+d}(\dcc(G)+d)n^2}$.
+\end{proof}
+
+
+
+%\begin{proof}
+%    Let $U$ be a set such that $G - U$ is a cluster graph, $\mathcal{Q} = \{Q_1, \dots, Q_p\}$ be the family of clusters of $G - U$ and $\mathcal{Q}_i = \bigcup_{i \leq j \leq p} Q_j$.
+%    Essentially, the following dynamic programming algorithm attempts to extend a given partition of $U$ in all possible ways by partitioning clusters, one at a time, while only keeping track of the degrees of vertices that belong to $U$.
+%    Recall that we do not need to keep track of the degrees of the cluster vertices precisely because $G - U$ has no edge between clusters.
+%
+%    Formally, given a partition $U = A  \dcup B$, our table is a mapping $f : [p] \times \mathbb{Z}^{|A|} \times \mathbb{Z}^{|B|} \rightarrow \{0, 1\}$.
+%    Each entry is indexed by $(i, \bmd_A, \bmd_B)$, where $i \in [p]$, $\bmd_A$ is a $|A|$-dimensional vector with the $j$-th coordinate begin denoted by $\bmd_A[j]$; $\bmd_B$ is defined analogously.
+%    Our goal is to have $f(i, \bmd_A, \bmd_B) = 1$ if and only if there is a partition $(X, Y)$ of $U \cup \mathcal{Q}_i$ where $A \subseteq X$, $B \subseteq Y$ and $v_j \in A$ ($u_{\ell} \in B$) has at most $\bmd_A[j]$ ($\bmd_B[\ell]$) neighbors in $\mathcal{Q}_i$.
+%
+%    We denote by $P_d(i, \bmd_A, \bmd_B)$ the set of all partitions $L  \dcup R = Q_i$ such that every vertex $v \in L$ has $d_{B \cup R}(v) \leq d$, every $u \in R$ has $d_{A \cup L}(u) \leq d$, every $v_j \in A$, $d_R(v_j) \leq \bmd_A[j]$ and every $u_{\ell} \in B$, $d_L(u_{\ell}) \leq \bmd_B[\ell]$; note that, due to this definition, $(L, R) \neq (R, L)$.
+%    In the following equations, which give the computations required to build our table, $\bmd_A(R)$ and $\bmd_B(L)$ are the updated values of the vertices of $A$ and $B$ after $R$ is added to $Y$ and $L$ to $X$, respectively.
+%    \begin{align}
+%        f(i, \bmd_A, \bmd_B) &= 0 \bigvee_{(L, R) \in P_d(i, \bmd_A, \bmd_B)} f(i+1,\bmd_A(R), \bmd_B(L))\label{eq:trans_dc}\\
+%        f(p, \bmd_A, \bmd_B) &= 1, \text{if and only if $P_d(i, \bmd_A, \bmd_B) \neq \emptyset$.}\label{eq:stop_dc}
+%    \end{align}
+%
+%    We proceed to show the correctness of the above by induction.
+%    For the base case, i.e., when $|\mathcal{Q}| = p = 1$, we have that for $v_j \in A$ ($u_l \in B$),  $\bmd_A[j] = d - d_B(v_j)$ ($\bmd_B[j] = d - d_A(u_l)$) and a partition of $V(G)$ exists if and only if there is some partition $(L, R) \in P_d(1, \bmd_A, \bmd_B)$, where.
+%    This case is covered by equation~(\ref{eq:stop_dc}).
+%
+%    So let $p > 1$ and $(i, \bmd_A, \bmd_B)$ be an entry of our table.
+%    First, if $|Q_i| \geq 2d+1$, $Q_i$ is monochromatic, which implies that $|P_d(i, \bmd_A, \bmd_B)| \leq 2$.
+%    Therefore, we may assume that, $|P_d(i, \bmd_A, \bmd_B)| \leq 2^{2d}$.
+%    $P_d(i, \bmd_A, \bmd_B) = \emptyset$ implies that any partition $(L, R)$ of $Q_i$ causes a vertex in $L$ ($R$) to have more than $d$ neighbors in $B \cup R$ ($A \cup L$), which is easily checked for in $\bigO{n|U|}$-time, or some vertex $v_j \in A$ ($u_l \in B$) has $d_{Y \cup R}(v_j) > \bmd_A[j]$ ($d_{X \cup L}(u_l) > \bmd_B[l]$).
+%    Either way, we have that no matter how we partition $\mathcal{Q}_i$, the available degree of some vertex is not enough, equation~(\ref{eq:trans_dc}) yields the correct answer.
+%
+%    However, if $P_d(i, \bmd_A, \bmd_B) \neq \emptyset$, the subgraph induced by $U \cup \mathcal{Q}_i$ has a $d$-cut separating $A$ and $B$ and respecting the limits of $\bmd_A$ and $\bmd_B$ if and only if there is some $(L, R) \in P_d(i, \bmd_A, \bmd_B)$ such that $U \cup \mathcal{Q}_{i+1}$ has a $d$-cut and each vertex of $A$ ($B$) has the size of its neighborhood in $\mathcal{Q}_{i+1}$ bounded by the respective coordinate of $\bmd_A(R)$ ($\bmd_B(L)$).
+%    By the inductive hypothesis, there is such a partition of $\mathcal{Q}_{i+1}$ if and only if $f(i+1, \bmd_A(R), \bmd_B(L)) = 1$, concluding the proof of correctness.
+%    Clearly, there is a $d$-cut separating $A$ and $B$ if $f(1, \bmd_A, \bmd_B) = 1$ where for every $v_j \in A$ ($u_l \in B$),  $\bmd_A[j] = d - d_B(v_j)$ ($\bmd_B[j] = d - \dgr_A(u_{\ell})$).
+%
+%    The complexity analysis is straightforward.
+%    Recalling that $|P_d(i, \bmd_A, \bmd_B)| \leq 2^{2d}$, we have that each $f(i, \bmd_A, \bmd_B)$ can be computed in time $\bigO{4^d|U|n}$ and, since we have $\bigO{(d+1)^{|A| + |B|}p} \in \bigO{(d+1)^{|U|}p}$, given a partition $(A, B)$ of $U$, we can decide if there is $d$-cut separating $A$ and $B$ in $\bigO{4^d(d+1)^{|U|}|U|n^2}$-time.
+%    To solve \pname{$d$-Cut} itself, we guess all $2^{|U|}$ partitions of $U$ and, since $|U| \in \bigO{\dc(G)}$, we obtain a total running time of $\bigO{4^d(d+1)^{\dc(G)}2^{\dc(G)}\dc(G)n^2}$.
+%\end{proof}
+
+
+
+Using Theorems~\ref{thm:fpt_cluster} and~\ref{thm:fpt_cocluster}, and the relation $\tau(G) \geq \max\{\dc(G), \dcc(G)\}$~\cite{matching_cut_ipec}, we obtain the following corollary. %fixed-parameter tractability for \pname{$d$-Cut} parameterized by the vertex cover number $\tau(G)$.
+
+\begin{corollary}
+    For every $d \geq 1$, \pname{$d$-Cut} parameterized by vertex cover is in $\FPT$.
+\end{corollary}

@@ -1,0 +1,28 @@
+\section{Concluding remarks}
+\label{sec:concl}
+
+We presented a series of algorithms and complexity results; many questions, however, remain open.
+For instance, all of our algorithms have an exponential dependency on $d$ on their running times.
+While we believe that such a dependency is an intrinsic property of \pname{$d$-cut}, we have no proof for this claim. Similarly, the existence of a {\sl uniform} polynomial kernel parameterized by the distance to cluster, i.e., a kernel whose degree does not depend on $d$, remains an interesting open question.
+
+Also in terms of running time, we expect the constants in the base of the exact exponential algorithm to be improvable. However, exploring small structures that yield non-marginal gains as branching rules, as done by Komusiewicz et al.~\cite{matching_cut_ipec} for $d=1$ does not seem a viable approach, as the number of such structures appears to rapidly grow along with $d$.
+
+%\ig{uniform kernel?}
+
+
+The distance to cluster kernel is hindered by the existence of clusters of size between $d+2$ and $2d$, an obstacle that is not present in the \pname{Matching Cut} problem.
+Aside from the extremal argument presented, we know of no way of dealing with them.
+We conjecture that it should be possible to reduce the total kernel size from $\bigO{d^2\dc(G)^{2d+1}}$ to $\bigO{d^2\dc(G)^{2d}}$, matching the size of the smallest known kernel for \pname{Matching Cut}~\cite{matching_cut_ipec}.
+
+We also leave open to close the gap between the polynomial and $\NP$-hard cases in terms of maximum degree.
+We showed that, if $\Delta(G) \leq d+2$ the problem is easily solvable in polynomial time, while for graphs with $\Delta(G) \geq 2d+2$, it is $\NP$-hard.
+But what about the gap $d+3 \leq \Delta(G) \leq 2d+1$?
+After some effort, we were unable to settle any of these cases.
+In particular, we are interested in \pname{2-Cut},  which has a single open case: $\Delta(G) = 5$.
+After some weeks of computation, we found no graph with more than 18 vertices and maximum degree five that had no $2$-cut, in agreement with the computational findings of Ban and Linial~\cite{internal_partition_regular6}.
+Interestingly, all graphs on 18 vertices without a $2$-cut are either 5-regular or have a single pair of vertices of degree 4, which are actually adjacent.
+In both cases, the graph is maximal in the sense that we cannot add edges to it while maintaining the degree constraints.
+We recall the initial discussion about \pname{Internal Partition}; closing the gap between the known cases for \textsc{$d$-Cut} would yield significant advancements on the former problem.
+
+Finally, the smallest $d$ for which $G$ admits a $d$-cut may be an interesting additional parameter to be considered when more traditional parameters, such as treewidth, fail to provide $\FPT$ algorithms by themselves.
+Unfortunately, by Theorem~\ref{thm:regular_nph}, computing this parameter is not even in $\XP$, but, as we have shown, it can be computed in $\FPT$ time under many different parameterizations. 

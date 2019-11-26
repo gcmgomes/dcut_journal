@@ -1,0 +1,93 @@
+\section{Introduction}
+\label{sec:intro}
+
+ A \tdef{cut} of a graph $G = (V, E)$ is a bipartition of its vertex set $V(G)$ into two non-empty sets, denoted by $(A,B)$.
+The set of all edges with one endpoint in $A$ and the other in $B$ is the \tdef{edge cut}, or the set of \tdef{crossing edges}, of $(A,B)$.
+A \tdef{matching cut} is a (possibly empty) edge cut that is a matching, that is, such that its edges are pairwise vertex-disjoint. Equivalently, $(A, B)$ is a matching cut of $G$ if and only if every vertex is incident to at most one crossing edge of $(A, B)$~\cite{matching_cut_graham, chvatal_matching_cut}, that is, it has at most one neighbor across the cut.
+
+Motivated by an open question posed by Komusiewicz et al.~\cite{matching_cut_ipec} during the presentation of their article,  we investigate a natural generalization that arises from this alternative definition, which we call \tdef{$d$-cut}.
+Namely, for a positive integer $d \geq 1$, a $d$-cut is a a cut $(A, B)$ such that each vertex has at most $d$ neighbors across the partition, that is, every vertex in $A$ has at most $d$ neighbors in $B$, and vice-versa. Note that a $1$-cut is a matching cut.
+As expected, not every graph admits a $d$-cut, and the \pname{$d$-Cut} problem is the problem of deciding, for a fixed integer $d \geq 1$, whether or not an input graph $G$ has a $d$-cut.
+
+%\probl{$d$-Cut}{A graph $G$.}{Does $G$ have a $d$-cut?}
+
+When $d=1$, we refer to the problem as \pname{Matching Cut}.
+Graphs with no matching cut first appeared in Graham's manuscript~\cite{matching_cut_graham} under the name of \textit{indecomposable graphs}, presenting some examples and properties of decomposable and indecomposable graphs, leaving their recognition as an open problem.
+In answer to Graham's question, Chv\'atal~\cite{chvatal_matching_cut} proved that the problem is \NP-hard for graphs of maximum degree at least four and polynomially solvable for graphs of maximum degree at most three; in fact, as shown by Moshi~\cite{matching_cut_moshi}, every graph of maximum degree three and at least eight vertices has a matching cut.
+
+Chvátal's results spurred a lot of research on the complexity of the problem~\cite{matching_cut_ipec,matching_cut_structural,matching_cut_tcs, matching_cut_diameter, matching_cut_planar, matching_cut_series_parallel, stable_cutset_line_graphs}.
+In particular, Bonsma~\cite{matching_cut_planar} showed that \pname{Matching Cut} remains \NP-hard for planar graphs of maximum degree four and for planar graphs of girth five;
+Le and Randerath~\cite{stable_cutset_line_graphs} gave an \NP-hardness reduction for bipartite graphs of maximum degree four;
+Le and Le~\cite{matching_cut_diameter} proved that \pname{Matching Cut} is \NP-hard for graphs of diameter at least three, and presented a polynomial-time algorithm for graphs of diameter at most two.
+Beyond planar graphs, Bonsma's work~\cite{matching_cut_planar} also proves that the matching cut property is expressible in monadic second order logic and, by Courcelle's Theorem~\cite{courcelle_theorem}, it follows that \pname{Matching Cut} is $\FPT$ when parameterized by the treewidth of the input graph; he concludes with a proof that the problem admits a polynomial-time algorithm for graphs of bounded cliquewidth.
+
+Kratsch and Le~\cite{matching_cut_tcs} noted that Chv\'atal's original reduction also shows that, unless the Exponential Time Hypothesis~\cite{eth} (\ETH) fails\footnote{The $\ETH$ states that 3-\textsc{SAT} on $n$ variables cannot be solved in time $2^{o(n)}$; see~\cite{eth} for more details.}, there is no algorithm solving \pname{Matching Cut} in time $2^{o(n)}$ on $n$-vertex input graphs.
+Also in~\cite{matching_cut_tcs}, the authors provide a first branching algorithm, running\footnote{The $\bigOs{\cdot}$ notation suppresses factors that are bounded by a polynomial in the input size.} in time $\bigOs{2^{n/2}}$, a single-exponential $\FPT$ algorithm when parameterized by the vertex cover number $\tau(G)$, and an algorithm generalizing the polynomial cases of line graphs~\cite{matching_cut_moshi} and claw-free graphs~\cite{matching_cut_planar}.
+Kratsch and Le~\cite{matching_cut_tcs} also asked for the existence a single-exponential algorithm parameterized by treewidth.
+In response, Aravind et al.~\cite{matching_cut_structural} provided a $\bigOs{12^{\tw(G)}}$ algorithm for \pname{Matching Cut} using nice tree decompositions, along with $\FPT$ algorithms for other structural parameters, namely neighborhood diversity, twin-cover, and distance to split graph.
+
+The natural parameter -- the number of edges crossing the cut -- has also been considered.
+%\ig{really? In the next sentence you speak about another problem}.
+Indeed, Marx et al.~\cite{marx_treewidth_reduction} tackled the \pname{Stable Cutset} problem, to which \textsc{Matching Cut} can be easily reduced via the line graph, and through a breakthrough technique showed that this problem is $\FPT$ when parameterized by the maximum size of the stable cutset.
+Recently, Komusiewicz et al.~\cite{matching_cut_ipec} improved on the results of Kratsch and Le~\cite{matching_cut_tcs}, providing an exact exponential algorithm for \textsc{Matching Cut} running in  time $\bigOs{1.3803^n}$, as well as $\FPT$ algorithms parameterized by the distance to a cluster graph and the distance to a co-cluster graph, which improve the algorithm parameterized by the vertex cover number, since both parameters are easily seen to be smaller than the vertex cover number.
+For the distance to cluster parameter, they also presented a quadratic kernel; while for a combination of treewidth, maximum degree, and number of crossing edges, they showed that no polynomial kernel exists unless $\NP \subseteq \coNP/\poly$.
+
+A problem  closely related to \pname{$d$-Cut} is that of \pname{Internal Partition}, first studied by Thomassen~\cite{internal_partition_thomassen}.
+In this problem, we seek a bipartition of the vertices of an input graph such that every vertex has at least as many neighbors in its
+own part as in the other part. Such a partition is called an \tdef{internal partition}.
+Usually, the problem is posed in a more general form: given functions $a,b: V(G) \rightarrow \mathbb{Z}_+$, we seek a bipartition $(A,B)$ of $V(G)$ such that every $v \in A$ satisfies $\dgr_A(v) \geq a(v)$ and every $u \in B$ satisfies $\dgr_B(u) \geq b(u)$, where $\dgr_A(v)$ denotes the number of neighbors of $v$ in the set $A$. Such a partition is called an \tdef{$(a,b)$-internal partition}.
+Originally, Thomassen asked in~\cite{internal_partition_thomassen} whether for any pair of positive integers $s,t$, a graph $G$ with $\delta(G) \geq s + t + 1$ has a vertex bipartition $(A,B)$ with $\delta(G[A]) \geq s$ and $\delta(G[B]) \geq t$, where $\delta(H)$ is the minimum degree of $H$.
+Stiebitz~\cite{internal_partition_stiebitz} answered that, in fact, for any graph $G$ and any pair of functions $a,b: V(G) \rightarrow \mathbb{Z}_+$ satisfying $\dgr(v) \geq a(v) + b(v) + 1$ for every $v \in V(G)$, $G$ has an $(a,b)$-internal partition; see~\cite{internal_partition_triangle_free,internal_partition_c4_free} for follow-up results.
+%Following Stiebitz's work, Kaneko~\cite{internal_partition_triangle_free} showed that if $G$ is triangle-free, then the pair $a,b$ only needs to satisfy $\dgr(v) \geq a(v) + b(v)$.
+%More recently, Ma and Yang~\cite{internal_partition_c4_free} proved that, if $G$ is $\{C_4, K_4, \text{diamond}\}$-free, then $\dgr(v) \geq a(v) + b(v) - 1$ is enough.
+%Furthermore, they also showed, for any pair $a,b$, a family of graphs such that $\dgr(v) \geq a(v) + b(v) - 2$ for every $v \in V(G)$ that do not admit an $(a,b)$-internal partition.
+It is conjectured that, for every positive integer $r$, there exists some constant $n_r$ for which every $r$-regular graph with more than $n_r$ vertices has an internal partition~\cite{DeVos09,internal_partition_regular6} (the conjecture for $r$ even appeared first in~\cite{internal_partition_regular3_4}).
+The cases $r \in \{3,4\}$ have been settled by Shafique and Dutton~\cite{internal_partition_regular3_4}; the case $r=6$ has been verified by Ban and Linial~\cite{internal_partition_regular6}.
+This latter result implies that every 6-regular graph of sufficiently large size has a 3-cut.
+
+\medskip
+
+\noindent \textbf{Our results}. We aim at generalizing several of the previously reported results  for \pname{Matching Cut}.
+First, we show in Section~\ref{sec:np}, by using a reduction inspired by Chvátal's~\cite{chvatal_matching_cut}, that for every $d \geq 1$, \pname{$d$-Cut} is \NP-hard even when restricted to $(2d+2)$-regular graphs and that, if $\Delta(G) \leq d+2$ (the maximum degree of $G$) finding a $d$-cut can be done in polynomial time. The degree bound in the \NP-hardness result is unlikely to be improved: if we had an \NP-hardness result for \textsc{$d$-Cut} restricted to $(2d+1)$-regular graphs, this would disprove the conjecture about the existence of internal partitions on $r$-regular graphs~\cite{DeVos09,internal_partition_regular6,internal_partition_regular3_4} for $r$ odd, unless $P = \NP$. We conclude the section by giving a simple exact exponential algorithm that,  for every $d \geq 1$, runs in time $\bigOs{c_d^n}$ for some constant $c_d < 2$, hence improving over the trivial brute-force algorithm running in time $\bigOs{2^n}$.
+
+We then proceed to analyze the problem in terms of its parameterized complexity.
+Section~\ref{sec:param} begins with a proof, using the treewidth reduction technique of Marx et al.~\cite{marx_treewidth_reduction}, that \pname{$d$-Cut} is $\FPT$ parameterized by the maximum number of edges crossing the cut.
+Afterwards, we present a dynamic programming algorithm for \pname{$d$-Cut} parameterized by treewidth running in time $\bigOs{2^{\tw(G)}(d+1)^{2\tw(G)}}$; in particular, for $d=1$ this algorithm runs in time $\bigOs{8^{\tw(G)}}$ and improves the one given by Aravind et al.~\cite{matching_cut_structural} for \pname{Matching Cut}, which runs in $\bigOs{12^{\tw(G)}}$ time.
+By employing the cross-composition framework of Bodlaender et al.~\cite{cross_composition} and using a reduction similar to the one in~\cite{matching_cut_ipec}, we show that, unless $\NP \subseteq \coNP/\poly$, there is no polynomial kernel for \pname{$d$-Cut} parameterized simultaneously by the number of crossing edges, the maximum degree, and the treewidth of the input graph.
+We then present a polynomial kernel and an $\FPT$ algorithm when parameterizing by the distance to cluster, denoted by $\dc(G)$. This polynomial kernel is our main technical contribution, and it is strongly inspired by the technique presented by  Komusiewicz et al.~\cite{matching_cut_ipec} for \textsc{Matching Cut}. Finally, we give an $\FPT$ algorithm parameterized by the distance to co-cluster, denoted by $\dcc(G)$.
+These results imply the existence of a polynomial kernel for \pname{$d$-Cut} parameterized by the vertex cover number $\tau(G)$.
+We present in Section~\ref{sec:concl} our concluding remarks and some open questions.
+
+%We use standard notation from graph theory and parameterized complexity; see~\cite{Die10,DF13,CyganFKLMPPS15,book-kernels} for any undefined terminology. Due to space limitations, the proofs of the results marked with `($\star$)' can be found in the full version of this article, permanently available at \url{https://arxiv.org/abs/1905.03134}. Some basic preliminaries can also be found there.
+
+%For completeness, some basic preliminaries can be found in Appendix~\ref{sec:prelim}.
+
+\subsection{Preliminaries}
+\label{sec:prelim_}
+
+We use standard graph-theoretic notation, and we consider simple undirected graphs without loops or multiple edges; see~\cite{Die10} for any undefined terminology. When the graph is clear from the context, the degree (that is, the number of neighbors) of a vertex $v$ is denoted by  $\dgr(v)$, and the number of neighbors of a vertex $v$ in a set $A \subseteq V(G)$ is denoted by $\dgr_A(v)$. The minimum degree, the maximum degree, the line graph, and the vertex cover number of a graph $G$ are denoted by $\delta(G)$, $\Delta(G)$, $L(G)$,
+and $\tau(G)$, respectively. For a positive integer $k \geq 1$, we denote by $[k]$ the set containing every integer $i$ such that $1 \leq i \leq k$.
+
+
+We refer the reader to~\cite{DF13,CyganFKLMPPS15} for basic background on parameterized complexity, and we recall here only some basic definitions.
+A \emph{parameterized problem} is a language $L \subseteq \Sigma^* \times \mathbb{N}$.  For an instance $I=(x,k) \in \Sigma^* \times \mathbb{N}$, $k$ is called the \emph{parameter}. %Given a classical (non-parameterized) decision problem $L_{c} \subseteq \Sigma^*$ and a function $\kappa: \Sigma^* \rightarrow \mathbb{N}$, we denote by
+%$L_{c}/\kappa = \{(x,\kappa(x)\} \mid x \in L_{c}\}$ the associated parameterized problem. \ig{really?}
+A parameterized problem is \emph{fixed-parameter tractable} ({\sf FPT}) if there exists an algorithm $\Acal$, a computable function $f$, and a constant $c$ such that given an instance $I=(x,k)$,
+$\Acal$ (called an {\sf FPT} \emph{algorithm}) correctly decides whether $I \in L$ in time bounded by $f(k) \cdot |I|^c$.
+
+A fundamental concept in parameterized complexity is that of \emph{kernelization}; see~\cite{book-kernels} for a recent book on the topic. A kernelization
+algorithm, or just \emph{kernel}, for a parameterized problem $\Pi $ takes an
+instance~$(x,k)$ of the problem and, in time polynomial in $|x| + k$, outputs
+an instance~$(x',k')$ such that $|x'|, k' \leqslant g(k)$ for some
+function~$g$, and $(x,k) \in \Pi$ if and only if $(x',k') \in \Pi$. The function~$g$ is called the \emph{size} of the kernel and may
+be viewed as a measure of the ``compressibility'' of a problem using
+polynomial-time preprocessing rules. A kernel is called \emph{polynomial} (resp. \emph{quadratic, linear}) if the function $g(k)$ is a polynomial (resp. quadratic, linear) function in $k$.
+%It is nowadays a well-known result in the area that a
+%decidable problem is in \fpt if and only if it has a kernelization algorithm.
+%However, the kernel that one obtains in this way is typically of size at least
+%exponential in the parameter. A natural problem in this context is to find
+%polynomial or linear kernels for problems that are in \fpt.
+A breakthrough result of Bodlaender et al.~\cite{BodlaenderDFH09} gave the first framework for proving that certain parameterized problems
+do not admit polynomial kernels, by establishing so-called \emph{composition algorithms}. Together with a result of Fortnow and
+Santhanam~\cite{FortnowS11} this allows to exclude polynomial kernels under the assumption that ${\sf NP} \nsubseteq {\sf coNP} / {\sf poly}$, otherwise implying
+a collapse of the polynomial hierarchy to its third level~\cite{Yap83}. 

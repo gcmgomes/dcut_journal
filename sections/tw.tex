@@ -1,0 +1,148 @@
+\subsection{Treewidth}
+
+We now present an algorithm for \pname{$d$-Cut} parameterized by the treewidth of the input graph that; in particular, it improves the running time of the best known algorithm for \pname{Matching Cut}~\cite{matching_cut_structural}.
+For the definitions of treewidth we refer to~\cite{treewidth,CyganFKLMPPS15}.
+We state here an adapted definition of nice tree decomposition which shall be useful in our algorithm.
+
+\begin{definition}{(Nice tree decomposition)}
+    A tree decomposition $(T, \mathcal{B})$ of a graph $G$ is said to be \emph{nice} if it T is a tree rooted at an empty bag $r(T)$ and each of its bags is from one of the following four types:
+    \begin{enumerate}
+        \item \textit{Leaf node}: a leaf $x$ of $T$ with $|B_x| = 2$ and no children.
+        \item \textit{Introduce node}: an inner node $x$ of $T$ with one child $y$ such that $B_x \setminus B_y = \{u\}$, for some $u \in V(G)$.
+        \item \textit{Forget node}: an inner node $x$ of $T$ with one child $y$ such that $B_y \setminus B_x = \{u\}$, for some $u \in V(G)$.
+        \item \textit{Join node}: an inner node $x$ of $T$ with two children $y,z$ such that $B_x = B_y = B_z$.
+    \end{enumerate}
+\end{definition}
+
+
+In the next theorem, note that the assumption that the given tree decomposition is {\sl nice} is not restrictive, as any tree decomposition can be transformed into a nice one of the same width in polynomial time~\cite{Klo94}.
+
+\begin{theorem}\label{thm:treewidth}
+    For every integer $d \geq 1$, given a nice tree decomposition of $G$ of width $\tw(G)$, \pname{$d$-Cut} can be solved in time $\bigOs{2^{\tw(G)+1}(d+1)^{2\tw(G) + 2}}$.
+\end{theorem}
+
+\begin{proof}
+    As expected, we will perform dynamic programming on a nice tree decomposition.
+    For this proof, we denote a $d$-cut of $G$ by $(L, R)$ and suppose that we are given a total ordering of the vertices of $G$.
+    Let $(T, \mathcal{B})$ be a nice tree decomposition of $G$ rooted at a node $r \in V(T)$.
+    For a given node $x \in T$, an entry of our table is indexed by a triple $(A, \balpha, t)$, where $A \subseteq B_x$, $\balpha \in \left(\{0\} \cup [d]\right)^{\tw(G)+1}$, and $t$ is a binary value. Each coordinate $a_i$ of $\alpha$ indicates how many vertices {\sl outside} of $B_x$ the $i$-th vertex of $B_x$ has in the other side of the partition. More precisely, we denote by $f_x(A, \balpha, t)$ the binary value indicating whether or not $V(G_x)$ has a bipartition $(L_x,R_x)$ such that $L_x \cap B_x = A$, every vertex $v_i \in B_x$ has exactly $a_i$ neighbors in the other side of the partition $(L_x,R_x)$  outside of $B_x$, and both $L_x$ and $R_x$ are non-empty if and only if $t = 1$. Note that $G$ admits a $d$-cut if and only if $f_r(\emptyset, \boldsymbol{0}, 1)=1$.
+    Figure~\ref{fig:treewidth} gives an example of an entry in the dynamic programming table and the corresponding solution on the subtree.
+
+
+    % indicating if both $L$ and $R$ are non-empty in $G_x$. \ig{Redefine: there must exist a bipartition $(L_x,R_x)$ of $G_x$ such that $L_x \cap B_x = A$, $\balpha$ captures the degrees on the other side of $(L_x,R_x)$, and $t$ says whether both sides are non-empty. Say that for the root, this indeed solved the problem} Semantically, $A$ represents which vertices of $B_x$ are in $L$, each coordinate $a_i$ of $\alpha$ indicates how many vertices {\sl outside} of $B_x$ the $i$-th vertex of $B_x$ has in the other side of the partition, and $t$ indicates if the condition that both $L$ and $R$ are non-empty in $G_x$ has been satisfied.
+%    As such, we denote by $f_x(A, \balpha, t)$ the binary value indicating whether or not $G_x$ has a bipartition such that $A \subseteq L$, vertex $v_i \in B_x$ has $a_i$ neighbors in the other side of the partition outside of $B_x$, and both $L$ and $R$ are non-empty if and only if $t = 1$.
+
+   % \ig{MISSING FIGURES}
+
+    \begin{figure}[!htb]
+        \centering
+        \begin{tikzpicture}[rotate = 90]
+                %\draw[help lines] (-5,-5) grid (5,5);
+                \GraphInit[unit=3,vstyle=Normal]
+                \SetVertexNormal[Shape=circle, MinSize=3pt]
+                \tikzset{VertexStyle/.append style = {inner sep = \inners, outer sep = \outers}}
+                \SetVertexNoLabel
+                \begin{scope}[rotate=90]
+                    \draw[fill=gray!20] (0,0) circle (1.2);
+                    \node at (1.5, 0) {$V_x$};
+                    \grComplete[RA=0.816747, prefix=t]{3}
+                    \SetVertexLabel
+                    \Vertex[Node, L = {0}, Math]{t0}
+                \end{scope}
+                \begin{scope}[rotate=90]
+                    \tikzset{VertexStyle/.append style = {inner sep = 3pt, shape = rectangle}}
+                    \SetVertexLabel
+                    \Vertex[Node, L = {2}, Math]{t2}
+                    \Vertex[Node, L = {1}, Math]{t1}
+                \end{scope}
+                \begin{scope}[rotate=45, shift={(-1.71424, -1.71424)}]
+                    \grCycle[RA=1, prefix=c]{4}
+                    \Edge(t0)(t2)
+                \end{scope}
+                \begin{scope}[rotate=45, shift={(-1.71424, -1.71424)}]
+                    \SetVertexNormal[Shape=circle, FillColor = black, MinSize=3pt]
+                    \tikzset{VertexStyle/.append style = {shape = rectangle, inner sep = 3pt, outer sep = \outers}}
+                    \Vertex[Node]{c3}
+                \end{scope}
+                \begin{scope}[rotate=45, shift={(-1.71424, -1.71424)}]
+                    \SetVertexNormal[Shape=circle, FillColor = black, MinSize=3pt]
+                    \tikzset{VertexStyle/.append style = {inner sep = 2pt, outer sep = \outers}}
+                    \Vertex[Node]{c0}
+                    \Vertex[Node]{c1}
+                    \Vertex[Node]{c2}
+                \end{scope}
+                \Edge(c0)(t2)
+                \Edge(c1)(t2)
+                \Edge(c1)(t1)
+                \Edge(c0)(c2)
+                %\AssignVertexLabel{t}{0,1,0}
+
+        \end{tikzpicture}
+        \caption{Example for $d=3$ of dynamic programming state and corresponding solution on the subtree. Squared (circled) vertices belong to $A$ ($B$). Numbers indicate the value of $\alpha_i$.\label{fig:treewidth}}
+    \end{figure}
+
+    We say that an entry $(A, \balpha, t)$ for a node $x$ is \tdef{valid} if for every $v_i \in A$, $|N(v_i) \cap (B_x \setminus A)| + a_i \leq d$, for every $v_j \in B_x \setminus A$, $|N(v_i) \cap A| + a_j \leq d$, and if $B_x \setminus A \neq \emptyset$ then $t = 1$; otherwise the entry is \tdef{invalid}. Moreover, note that if $f_x(A, \balpha, t)=1$, the corresponding bipartition $(L_x,R_x)$ of $V(G_x)$ is a $d$-cut if and only if $(A, \balpha, t)$ is valid and $t = 1$.
+
+
+    We now explain how the entries for a node $x$ can be computed, assuming recursively that the entries for their children have been already computed. We distinguish the four possible types of nodes. Whenever $(A, \balpha, t)$ is invalid or absurd (with, for example, $a_i < 0$) we define $f_x(A, \alpha, t)$ to be $0$, and for simplicity we will not specify this in the equations stated below.
+
+    \begin{itemize}
+        \item Leaf node: Since $|B_x| = 2$, for every $A \subseteq B_x$, we can set $f_x(A, \boldsymbol{0}, t) = 1$ with $t = 1$ if and only if $B_x \setminus A \neq \emptyset$.
+        These are all the possible partitions of $B_x$, taking $\bigO{1}$ time to be computed.
+
+        \item Introduce node: Let $y$ be the child of $x$ and $B_x \setminus B_y = \{v_i\}$.
+        The transition is given by the following equation, where $\balpha^*$ has entries equal to $\balpha$ but without the coordinate corresponding to $v_i$.
+        If $a_i > 0$, $f_x(A, \balpha, t)$ is invalid since $v_i$ has no neighbors in $G_x - B_x$.
+       % \begin{equation*}
+%            f_x(A, \balpha, t) =
+%            \begin{cases}
+%                f_y(A \setminus \{v\}, \balpha^*, t),& \text{if $A = B_x$ or $A = \emptyset$.}\\
+%                \max_{t' \in \{0,1\}} f_y(A \setminus \{v\}, \balpha^*, t'),& \text{otherwise.}
+%            \end{cases}
+%        \end{equation*}
+        \[
+     f_x(A, \balpha, t)=\left\{
+                \begin{array}{ll}
+                  f_y(A \setminus \{v\}, \balpha^*, t), & \text{if $A = B_x$ or $A = \emptyset$.}\\
+                  \max_{t' \in \{0,1\}} f_y(A \setminus \{v\}, \balpha^*, t'), & \text{otherwise.}
+                \end{array}
+              \right.
+       \]
+       %\ig{say that we discard invalid entries (better: only compute valid entries). Also, only the entries with $\alpha_i=0$ are considered}
+
+        For the first case, $G_x$ has a bipartition (which will also be a $d$-cut if $t=1$)  represented by $(A, \balpha, t)$ only if $G_y$ has a bipartition ($d$-cut), precisely because, in both $G_x$ and $G_y$, the entire bag is in one side of the cut.
+        For the latter case, if $G_y$ has a bipartition, regardless if it is a $d$-cut or not, $G_x$ has a $d$-cut %\ig{what about if $v \in A$, and $v$ has more than $d$ neighbors in $B_x \setminus A$?}
+        because $B_x$ is not contained in a single part of the cut, unless the entry is invalid.
+        The computation for each of these nodes takes $\bigO{1}$ time per entry.
+
+        \item Forget node: Let $y$ be the child of $x$ and $B_y \setminus B_x = \{v_i\}$.
+        In the next equation, $\balpha'$ has the same entries as $\balpha$ with the addition of entry $a_i$ corresponding to $v_i$ and, for each $v_j \in A \cap N(v_i)$, $a_j' = a_j - 1$.
+        Similarly, for $\balpha''$, for each $v_j \in (B_x \setminus A) \cap N(v_i)$, $a_j'' = a_j - 1$.
+        \begin{equation*}
+            f_x(A, \balpha, t) = \max_{a_i \in \{0\} \cup [d]}\ \max \{ f_y(A, \balpha', t),\  f_y(A \cup \{v_i\}, \balpha'', t)\}.
+        \end{equation*}
+
+        Note that $\balpha'$ and $\balpha''$ take into account the forgetting of $v_i$; its neighbors get an additional neighbor outside of $B_x$ that is in the other side of the bipartition.
+        Moreover, since we inspect the entries of $y$ for every possible value of $a_i$, if at least one of them represented a feasible bipartition of $G_y$, the corresponding entry on $f_y(\cdot)$ would be non-zero and, consequently, $f_x(A, \balpha, t)$ would also be non-zero.
+        Computing an entry for a forget node takes $\bigO{d}$ time.
+
+        \item Join node: Finally, for a join node $x$ with children $y$ and $z$, a \tdef{splitting} of $\balpha$ is a pair $\balpha_y, \balpha_z$ such that for every coordinate $a_j$ of $\balpha$, it holds that the sum of $j$-th coordinates of $\balpha_y$ and $\balpha_z$ is equal to $a_j$. The set of all splittings is denoted by $S(\balpha)$ and has size $\bigO{(d+1)^{\tw(G)+1}}$.
+        As such, we define our transition function as follows.
+        \begin{equation*}
+            f_x(A, \balpha, t) = \max_{t \leq t_y + t_z \leq 2t}\ \max_{S(\balpha)} f_y(A, \balpha_y, t_y) \cdot f_z(A, \balpha_z, t_z).
+        \end{equation*}
+
+        The condition $t \leq t_y + t_z \leq 2t$ enforces that, if $t = 1$, at least one of the graphs $G_y, G_z$ must have a $d$-cut; otherwise, if $t = 0$, neither of them can.
+        When iterating over all splittings of $\balpha$, we are essentially testing all possible counts of neighbors outside of $B_y$ such that there exists some entry for node $z$ such that $\balpha_y + \balpha_z = \balpha$.
+        Finally, $f_x(A, \balpha, t)$ is feasible if there is at least one splitting and $t_y, t_z$ such that both $G_y$ and $G_z$ admit a bipartition.
+        This node type, which is the bottleneck of our dynamic programming approach, takes $\bigO{(d+1)^{\tw(G)+1}}$ time per entry.
+    \end{itemize}
+
+    Consequently, since we have $\bigO{\tw(G)} \cdot n$ nodes in a nice tree decomposition, spend $\bigO{\tw(G)^2}$ to detect an invalid entry, have $\bigO{2^{\tw(G) +1}(d+1)^{\tw(G)+1}}$ entries per node, each taking at most $\bigO{(d+1)^{\tw(G)+1}}$ time to be computed, our algorithm runs in time $\bigO{\tw(G)^32^{\tw(G)+1}(d+1)^{2\tw(G)+2}\cdot n}$, as claimed.
+\end{proof}
+
+From Theorem~\ref{thm:treewidth} we immediately get the following corollary, which improves over the algorithm given by Aravind et al.~\cite{matching_cut_structural}.
+
+\begin{corollary}
+   Given a nice tree decomposition of $G$ of width $\tw(G)$, \pname{Matching Cut} can be solved in time  $\bigOs{8^{\tw(G)}}$.
+\end{corollary}
